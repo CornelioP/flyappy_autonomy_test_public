@@ -1,4 +1,4 @@
-#include "flyappy/flyappy_ros.hpp"
+#include "flyappy_ros.hpp"
 
 namespace flyappy
 {
@@ -18,15 +18,21 @@ FlyappyRos::FlyappyRos(rclcpp::Node::SharedPtr node) : node_(node)
     sub_game_ended_ = node_->create_subscription<std_msgs::msg::Bool>(
             "/flyappy_game_ended", QUEUE_SIZE,
             std::bind(&FlyappyRos::gameEndedCallback, this, std::placeholders::_1));
+
+    flyappy_ = std::make_unique<Flyappy>();
 }
 
 void FlyappyRos::velocityCallback([[maybe_unused]] const geometry_msgs::msg::Vector3& msg)
 {
-    // Example of publishing acceleration command to Flyappy
-    geometry_msgs::msg::Vector3 acc_cmd;
-    acc_cmd.x = 0.5;  // move and accelerate Flyappy forward
-    acc_cmd.y = 0;
-    pub_acceleration_command_->publish(acc_cmd);
+    // Update the state estimate with the received velocity
+    flyappy_->get_state_estimate()->update_state(msg.x, msg.y);
+
+    // Print the state estimate
+    const auto pos = flyappy_->get_state_estimate()->get_position();
+    const auto vel = flyappy_->get_state_estimate()->get_velocity();
+    RCLCPP_INFO(node_->get_logger(), "Position: (%f, %f), Velocity: (%f, %f)",
+                pos.x, pos.y, vel.x, vel.y);
+
 }
 
 void FlyappyRos::laserScanCallback(const sensor_msgs::msg::LaserScan& msg)
@@ -47,7 +53,7 @@ void FlyappyRos::gameEndedCallback(const std_msgs::msg::Bool& msg)
         RCLCPP_INFO(node_->get_logger(), "End of countdown.");
     }
 
-    flyappy_ = Flyappy{};
+    flyappy_.reset(new Flyappy{});
 }
 
 }  // namespace flyappy

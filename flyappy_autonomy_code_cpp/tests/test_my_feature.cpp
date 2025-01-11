@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "flyappy/flyappy.hpp"
+#include "flyappy.hpp"
 
 TEST(MyFeature, Something)
 {

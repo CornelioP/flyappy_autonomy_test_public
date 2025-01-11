@@ -1,7 +1,7 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-#include "flyappy/flyappy_ros.hpp"
+#include "flyappy_ros.hpp"
 
 int main(int argc, char** argv)
 {

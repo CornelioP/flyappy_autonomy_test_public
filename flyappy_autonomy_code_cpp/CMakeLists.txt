@@ -17,10 +17,12 @@ find_package(sensor_msgs CONFIG REQUIRED)
 add_library(flyappy_interface INTERFACE)
 target_include_directories(flyappy_interface INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 add_library(flyappy
     src/flyappy/flyappy.cpp
+    src/flyappy/State_estimate/state_estimate.cpp
 )
 target_link_libraries(flyappy PUBLIC
     flyappy_interface

@@ -8,7 +8,7 @@
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <std_msgs/msg/bool.hpp>
 
-#include "flyappy/flyappy.hpp"
+#include "flyappy.hpp"
 
 namespace flyappy
 {
@@ -23,7 +23,7 @@ class FlyappyRos
     void laserScanCallback(const sensor_msgs::msg::LaserScan& msg);
     void gameEndedCallback(const std_msgs::msg::Bool& msg);
 
-    Flyappy flyappy_;  ///< ROS-free main code
+    std::unique_ptr<Flyappy> flyappy_;  ///< ROS-free main code
 
     rclcpp::Node::SharedPtr node_;
     rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr pub_acceleration_command_;
