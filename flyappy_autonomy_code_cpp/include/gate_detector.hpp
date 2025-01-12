@@ -36,6 +36,9 @@ class GateDetector
     // Reset the wall
     void resetWall();
 
+    // Compute RANSAC
+    float computeRANSAC(const std::vector<point>& points, int iterations = 100, float threshold = 0.1);
+
   private:
     Wall wall_;  // Wall object
     const float threshold_;

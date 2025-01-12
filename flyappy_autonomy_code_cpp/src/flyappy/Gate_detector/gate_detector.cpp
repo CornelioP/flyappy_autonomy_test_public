@@ -1,6 +1,7 @@
 #include "gate_detector.hpp"
 #include <algorithm>
 #include <iostream>
+#include <random>
 
 GateDetector::GateDetector() : threshold_(0.3f), initialized_(false)
 {
@@ -16,14 +17,9 @@ void GateDetector::detectWallPoints(const std::vector<point>& points)
     // Compute the average x of incoming points if wall is not initialized
     if (!initialized_)
     {
-        float avg_x = 0.0f;
-        for (const auto& p : points)
-        {
-            avg_x += p.x;
-        }
-        avg_x /= points.size();  // Set initial wall x-position
-
-        wall_.wall_x_position = avg_x;
+        // Use RANSAC for robustness over outliers 
+        const float ransac_x = computeRANSAC(points);
+        wall_.wall_x_position = ransac_x;
         initialized_ = true;  // Mark that wall x-position has been set
     }
 
@@ -82,11 +78,47 @@ void GateDetector::detectGate()
                           2.0f;  // X-coordinate should be near the wall x-position
     wall_.gate_center.y = (lower_point.y + upper_point.y) / 2.0f;
 
-    // Optional: print debug information
-    std::cout << "Gate detected at: (" << wall_.gate_center.x << ", "
-              << wall_.gate_center.y << ")\n";
-    std::cout << "Gate gap size: " << max_gap << "\n";
 }
+
+float GateDetector::computeRANSAC(const std::vector<point>& points, int iterations, float threshold)
+{
+    if (points.size() < 2)
+        return 0.0f;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, points.size() - 1);
+
+    float best_x = 0.0f;
+    int max_inliers = 0;
+
+    for (int i = 0; i < iterations; ++i)
+    {
+        // Randomly select two points to fit a line
+        const auto& p1 = points[dis(gen)];
+        const auto& p2 = points[dis(gen)];
+        float avg_x = (p1.x + p2.x) / 2.0f;
+
+        int inliers = 0;
+        for (const auto& p : points)
+        {
+            if (std::abs(p.x - avg_x) < threshold)
+            {
+                ++inliers;
+            }
+        }
+
+        if (inliers > max_inliers)
+        {
+            max_inliers = inliers;
+            best_x = avg_x;
+        }
+    }
+
+    return best_x;
+}
+
+
 
 bool GateDetector::hasPassedGate(float bird_x)
 {
