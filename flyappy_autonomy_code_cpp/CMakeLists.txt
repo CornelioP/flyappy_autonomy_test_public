@@ -24,6 +24,7 @@ add_library(flyappy
     src/flyappy/flyappy.cpp
     src/flyappy/State_estimate/state_estimate.cpp
     src/flyappy/Gate_detector/gate_detector.cpp
+    src/flyappy/Controller/PID.cpp
 )
 target_link_libraries(flyappy PUBLIC
     flyappy_interface

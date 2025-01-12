@@ -64,20 +64,38 @@ void GateDetector::detectGate()
     for (size_t i = 0; i < wall_.wall_points.size() - 1; ++i)
     {
         float gap = wall_.wall_points[i + 1].y - wall_.wall_points[i].y;
-        if (gap > max_gap && gap < 3.0)
+        if (gap > max_gap && gap < 3.0f)
         {
             max_gap = gap;
             gap_start_index = i;
         }
     }
 
-    // Step 3: Compute the gate center
+    // Step 3: Compute the new gate center
     const point& lower_point = wall_.wall_points[gap_start_index];
     const point& upper_point = wall_.wall_points[gap_start_index + 1];
-    wall_.gate_center.x = (lower_point.x + upper_point.x) /
-                          2.0f;  // X-coordinate should be near the wall x-position
-    wall_.gate_center.y = (lower_point.y + upper_point.y) / 2.0f;
+    float new_gate_x = (lower_point.x + upper_point.x) / 2.0f;  // Near the wall x-position
+    float new_gate_y = (lower_point.y + upper_point.y) / 2.0f;
 
+    // Step 4: Check if the new gate center is significantly different from the previous center
+    float tolerance = 0.1f;  // Tolerance for significant changes in gate position (adjust as needed)
+    float diff_x = std::abs(new_gate_x - wall_.gate_center.x);
+    float diff_y = std::abs(new_gate_y - wall_.gate_center.y);
+
+    if (diff_x < tolerance && diff_y < tolerance)
+    {
+        // The new gate is almost the same as the previous gate; ignore the update
+        std::cerr << "Gate detected, but coordinates are within tolerance. Keeping previous gate center." << std::endl;
+        return;
+    }
+
+    // Update the gate center if the difference is significant
+    wall_.gate_center.x = new_gate_x;
+    wall_.gate_center.y = new_gate_y;
+
+    // Step 5: Assign the safe x-coordinate to pass the gate and the end of the gate
+    wall_.gate_safe_x = wall_.gate_center.x - 0.25f;
+    wall_.gate_end_x = wall_.gate_center.x + 0.25f;
 }
 
 float GateDetector::computeRANSAC(const std::vector<point>& points, int iterations, float threshold)

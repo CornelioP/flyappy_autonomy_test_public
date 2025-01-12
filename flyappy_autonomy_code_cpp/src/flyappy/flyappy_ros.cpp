@@ -26,27 +26,45 @@ void FlyappyRos::velocityCallback(const geometry_msgs::msg::Vector3& msg)
 {
     // Update the state estimate with the received velocity
     flyappy_->get_state_estimate()->update_state(msg.x, msg.y);
-
 }
 
 void FlyappyRos::laserScanCallback(const sensor_msgs::msg::LaserScan& msg)
-{   
-    // Fetch current position
+{
     const auto pos = flyappy_->get_state_estimate()->get_position();
     const auto points = convertLaserScanToPoints(msg, pos.x, pos.y);
 
-    // If i have more than 6 points, then I can call the gate detector
     if (first_time_ && points.size() > 7)
     {
         first_time_ = false;
-        flyappy_->detectGate(points);   
-    }
-    else if(!first_time_ && points.size() > 5)
-    {
-        //Call the gate detector
         flyappy_->detectGate(points);
     }
-    
+    else if (!first_time_ && points.size() > 5)
+    {
+        flyappy_->detectGate(points);
+    }
+
+    // Structured binding for control law
+    float acc_x = 0.0f, acc_y = 0.0f;
+    if (first_time_)
+    {
+        float ref_vel = 2.0f;
+        float fly_vel = flyappy_->get_state_estimate()->get_velocity().x;
+        acc_x = flyappy_->get_longitudinal_controller()->compute_control_law(ref_vel,
+                                                                             fly_vel);
+    }
+    else
+    {
+        auto [computed_acc_x, computed_acc_y] = flyappy_->computeControlLaw();
+        acc_x = computed_acc_x;
+        acc_y = computed_acc_y;
+    }
+
+    geometry_msgs::msg::Vector3 acc_msg;
+    acc_msg.x = acc_x;
+    acc_msg.y = acc_y;
+    acc_msg.z = 0.0f;  // Assuming no z-axis control
+
+    pub_acceleration_command_->publish(acc_msg);
 }
 
 void FlyappyRos::gameEndedCallback(const std_msgs::msg::Bool& msg)
@@ -63,7 +81,8 @@ void FlyappyRos::gameEndedCallback(const std_msgs::msg::Bool& msg)
     flyappy_.reset(new Flyappy{});
 }
 
-std::vector<point> FlyappyRos::convertLaserScanToPoints(const sensor_msgs::msg::LaserScan& msg, float curr_x, float curr_y)
+std::vector<point> FlyappyRos::convertLaserScanToPoints(
+        const sensor_msgs::msg::LaserScan& msg, float curr_x, float curr_y)
 {
     std::vector<point> points;
     std::size_t size = msg.ranges.size();
@@ -93,6 +112,3 @@ std::vector<point> FlyappyRos::convertLaserScanToPoints(const sensor_msgs::msg::
     return points;
 }
 }  // namespace flyappy
-
-
-

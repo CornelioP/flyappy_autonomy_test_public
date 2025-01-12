@@ -11,6 +11,8 @@
 #include "flyappy.hpp"
 #include "gate_detector.hpp"
 
+
+
 namespace flyappy
 {
 
@@ -27,13 +29,14 @@ class FlyappyRos
 
     std::unique_ptr<Flyappy> flyappy_;  ///< ROS-free main code
 
-    bool first_time_;
-
     rclcpp::Node::SharedPtr node_;
     rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr pub_acceleration_command_;
     rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_velocity_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr sub_laser_scan_;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_game_ended_;
+
+
+    bool first_time_;
 };
 
 }  // namespace flyappy

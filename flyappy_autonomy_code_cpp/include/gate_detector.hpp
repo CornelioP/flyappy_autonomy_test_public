@@ -13,6 +13,8 @@ struct Wall
     std::vector<point> wall_points;  // Points corresponding to the current wall
     point gate_center;               // Center point of the detected gate
     float wall_x_position;           // X-coordinate of the wall
+    float gate_safe_x;               // x coordinate which is safe to pass the gate
+    float gate_end_x;                // x coordinate which is the end of the gate
 };
 
 class GateDetector
