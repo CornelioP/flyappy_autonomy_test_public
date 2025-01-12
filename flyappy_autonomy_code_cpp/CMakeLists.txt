@@ -23,6 +23,7 @@ target_include_directories(flyappy_interface INTERFACE
 add_library(flyappy
     src/flyappy/flyappy.cpp
     src/flyappy/State_estimate/state_estimate.cpp
+    src/flyappy/Gate_detector/gate_detector.cpp
 )
 target_link_libraries(flyappy PUBLIC
     flyappy_interface
@@ -31,6 +32,7 @@ target_link_libraries(flyappy PUBLIC
 if(BUILD_WITH_ROS)
     add_library(flyappy_ros
         src/flyappy/flyappy_ros.cpp
+        
     )
     target_link_libraries(flyappy_ros PUBLIC
         flyappy

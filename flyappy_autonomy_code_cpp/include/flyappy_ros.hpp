@@ -9,6 +9,7 @@
 #include <std_msgs/msg/bool.hpp>
 
 #include "flyappy.hpp"
+#include "gate_detector.hpp"
 
 namespace flyappy
 {
@@ -22,8 +23,11 @@ class FlyappyRos
     void velocityCallback(const geometry_msgs::msg::Vector3& msg);
     void laserScanCallback(const sensor_msgs::msg::LaserScan& msg);
     void gameEndedCallback(const std_msgs::msg::Bool& msg);
+    std::vector<point> convertLaserScanToPoints(const sensor_msgs::msg::LaserScan& msg, float curr_x, float curr_y);
 
     std::unique_ptr<Flyappy> flyappy_;  ///< ROS-free main code
+
+    bool first_time_;
 
     rclcpp::Node::SharedPtr node_;
     rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr pub_acceleration_command_;
